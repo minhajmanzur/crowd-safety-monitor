@@ -1,0 +1,65 @@
+# Zones, alert settings and site layout for the Mall dataset camera.
+#
+# The zone polygons are real (drawn on the Mall camera view). The site layout
+# (gates, staff, neighbouring zones) is an invented example so the agent has
+# something to recommend: the dataset does not document the building.
+
+dataset:
+  root: data/mall_dataset
+  fps: 2.0            # nominal; the dataset readme only says "under 2 Hz"
+
+weights: weights/mall_density.pt
+
+zones:
+  - name: north_corridor
+    polygon: [[0.0, 0.03], [1.0, 0.03], [1.0, 0.36], [0.0, 0.36]]
+    threshold: null   # null = derive from the training split (see below)
+    scale: 0.998      # count calibration fitted on training frames by the benchmark
+  - name: central_plaza
+    polygon: [[0.0, 0.36], [1.0, 0.36], [1.0, 0.68], [0.0, 0.68]]
+    threshold: null
+    scale: 0.991
+  - name: south_entrance
+    polygon: [[0.0, 0.68], [1.0, 0.68], [1.0, 1.0], [0.0, 1.0]]
+    threshold: null
+    scale: 0.908
+
+# Benchmark-only: a null threshold becomes this percentile of ground-truth
+# occupancy over the training frames. The mall never reaches an unsafe density,
+# so "breach" here means "unusually busy for this zone". On a real site, set
+# threshold = floor area (m2) x safe density (people/m2).
+threshold_percentile: 90
+
+# These are the settings the benchmark selected on the training split
+# (earliest warning with at most 30% false alerts). Lower warn_ratio or a
+# longer horizon warns earlier and raises more false alerts.
+alerts:
+  ema_alpha: 1.0
+  trend_window: 6
+  horizon: 0
+  warn_ratio: 0.9
+  confirm: 2
+  clear_ratio: 0.85
+
+evaluation:
+  window: 20          # frames: cap on the lead time one alert can be credited with
+  min_len: 4          # a breach is 4+ frames (about 2 s) at or over the limit
+  merge_gap: 6        # breaches this close together count as one
+  max_false_alert_rate: 0.3   # tuning picks the earliest-warning settings within this budget
+
+site:
+  staff_available: 4
+  zones:
+    north_corridor:
+      gates:
+        - {id: G1, name: North service exit, state: closed}
+      neighbors: {down: central_plaza}
+    central_plaza:
+      gates:
+        - {id: G2, name: East side door, state: closed}
+      neighbors: {up: north_corridor, down: south_entrance}
+    south_entrance:
+      gates:
+        - {id: G3, name: Second entrance door, state: closed}
+        - {id: G4, name: Main entrance, state: open}
+      neighbors: {up: central_plaza}

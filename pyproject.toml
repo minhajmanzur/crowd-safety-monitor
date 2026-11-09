@@ -1,0 +1,31 @@
+[project]
+name = "crowdsafe"
+version = "0.1.0"
+description = "Crowd density and safety monitor: zone density, flow direction, early alerts and an action-recommending agent. No face recognition."
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.2",
+    "torchvision>=0.17",
+    "numpy",
+    "scipy",
+    "opencv-python-headless",
+    "pyyaml",
+    "imageio",
+    "matplotlib",
+    "pydantic>=2",
+]
+
+[project.optional-dependencies]
+llm = ["anthropic"]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
